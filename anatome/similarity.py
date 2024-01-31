@@ -221,16 +221,34 @@ def _svd_reduction_keeping_fixed_dims_using_V(input: Tensor, num: int) -> Tensor
 
 def svcca_distance(x: Tensor,
                    y: Tensor,
-                   accept_rate: float,
-                   backend: str
+                   accept_rate: float,  # rec 0.99 
+                   backend: str,  # rec "svd"
                    ) -> Tensor:
     """ Singular Vector CCA proposed in Raghu et al. 2017.
+    Measures the linear correlations between two matrices/datasets (N by Di, N>Di -> N>Di') by first
+    doing dimensionality reduction, reducing features Di->Di' via SVD.  
+
+    CCA:
+        Canonical Correlation Analysis (CCA) is a well established statistical technique for comparing the
+        (linear) correlation of two sets of random variables (or vectors of random variables). In the empirical
+        case, however, one computes the correlations between two sets of data sets (e.g. two matrices
+        X ∈ R
+        N,D1 and Y ∈ R
+        N,D2 with N examples and D1, D2 features or layer matrices).
+    SVCCA:
+        At a high level, SVCCA is a similarity measure of two matrices that aims in removing redundant
+        neurons (i.e. redundant features) with the truncated SVD by keeping 0.99 of the variance and then
+        measure the overall similarity by averaging the top C CCA values.
+
+    ref:
+        - cs229 PCA: https://cs229.stanford.edu/main_notes.pdf
+        - curse low div: https://arxiv.org/abs/2208.01545
 
     Args:
         x: input tensor of Shape NxD1, where it's recommended that N>Di
         y: input tensor of Shape NxD2, where it's recommended that N>Di
-        accept_rate: 0.99
-        backend: svd or qr
+        accept_rate: 0.99 amount of features to accept for SV dim reduction
+        backend: svd or qr  dim reduction alg
 
     Returns:
 
@@ -380,7 +398,7 @@ def pwcca_distance_choose_best_layer_matrix(x: Tensor,
     if use_layer_matrix == 'x':
         x_tilde = x @ a
         assert x_tilde.size() == torch.Size([B, C])
-        x_tilde, _ = torch.linalg.qr(input=x_tilde)
+        x_tilde, _ = torch.linalg.qr(x_tilde)
         assert x_tilde.size() == torch.Size([B, C])
         alpha_tilde_dot_x_abs = (x_tilde.T @ x).abs_()
         assert alpha_tilde_dot_x_abs.size() == torch.Size([C, D1])

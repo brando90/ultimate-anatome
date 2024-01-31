@@ -27,7 +27,11 @@ setup(
     author_email='brandojazz@gmail.com',
     python_requires='>=3.9.0',
     license='MIT',
+
     packages=find_packages(),
+    # package_dir={'': 'anatome'},
+    # packages=find_packages('anatome'),  # imports all modules/folders with  __init__.py & python files
+
     install_requires=['torch>=1.9.0',
                       'torchvision>=0.10.0',
                       'torchaudio>=0.9.1',
